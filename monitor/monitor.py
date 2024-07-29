@@ -25,7 +25,6 @@ class Monitor:
             _instance.lock = threading.Lock()
             _instance._stop_event = threading.Event()
             _instance.thread = threading.Thread(target=_instance._monitor_instances, args=(interval,))
-            _instance.thread.daemon = True
             _instance.thread.start() 
             
             # socket stuff
@@ -60,7 +59,7 @@ class Monitor:
             with self.lock:
                 for instance in self.monitored_instances:
                     attributes = self._get_instance_attr(instance)
-                    attributes_str = ", ".join(f"{key}={value}" for key, value in attributes.items())
+                    attributes_str = f"Class {self.monitored_cls.__name__} Instance {id(instance)}" + ", ".join(f"{key}={value}" for key, value in attributes.items()) 
                     # print(f"Class {self.monitored_cls.__name__} Instance {id(instance)} attributes: {attributes_str}")
                     
                     # send stuff
@@ -70,7 +69,7 @@ class Monitor:
                         print(f"Client error : {e}")
                         self._stop_event.set()
                         self.client_socket.close()
-                        self.thread.join()
+
             time.sleep(interval)
 
         

@@ -26,7 +26,6 @@ class MonitorServer:
         
         # thread
         self.accept_thread = threading.Thread(target=self.accept_clients)
-        # self.accept_thread.daemon = True
         self.accept_thread.start()
         
     
@@ -52,8 +51,7 @@ class MonitorServer:
                 client_socket, client_address = self.server_socket.accept()
                 with self.lock:
                     self.clients.append((client_socket, client_address))
-                    client_thread = threading.Thread(target=self.handle_client, args=(client_socket, client_address))
-                    #client_thread.daemon = True     
+                    client_thread = threading.Thread(target=self.handle_client, args=(client_socket, client_address))    
                     client_thread.start()
                     self.client_threads.append(client_thread)
             except Exception as e:
