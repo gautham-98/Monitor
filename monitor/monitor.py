@@ -1,6 +1,7 @@
 import threading
 import time
 import weakref
+import socket
 
 class Monitor:
 
@@ -10,7 +11,7 @@ class Monitor:
     
     _instances = {}
 
-    def __new__(cls, monitored_cls, interval):
+    def __new__(cls, monitored_cls, interval, server_addr=("localhost", 8080)):
         """
         instantiate _instance of Class Monitor which tracks a single cls monitored_cls
         """
@@ -19,11 +20,17 @@ class Monitor:
             _instance = cls._instances[monitored_cls]
             _instance.monitored_cls = monitored_cls
             _instance.monitored_instances = weakref.WeakSet()
+            
+            # thread stuff
             _instance.lock = threading.Lock()
             _instance._stop_event = threading.Event()
             _instance.thread = threading.Thread(target=_instance._monitor_instances, args=(interval,))
             _instance.thread.daemon = True
             _instance.thread.start() 
+            
+            # socket stuff
+            _instance.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            _instance.client_socket.connect(server_addr)
         return cls._instances[monitored_cls]
     
     def register(self, monitored_instance):
@@ -43,6 +50,7 @@ class Monitor:
             self.monitored_instances.discard(monitored_instance)
             if not self.monitored_instances:
                 self._stop_event.set()
+                self.thread.join()
     
     def _get_instance_attr(self, instance):
         return vars(instance)
@@ -53,7 +61,16 @@ class Monitor:
                 for instance in self.monitored_instances:
                     attributes = self._get_instance_attr(instance)
                     attributes_str = ", ".join(f"{key}={value}" for key, value in attributes.items())
-                    print(f"Class {self.monitored_cls} Instance {id(instance)} attributes: {attributes_str}")
+                    # print(f"Class {self.monitored_cls.__name__} Instance {id(instance)} attributes: {attributes_str}")
+                    
+                    # send stuff
+                    try:
+                        self.client_socket.sendall(attributes_str.encode('utf-8'))
+                    except Exception as e:
+                        print(f"Client error : {e}")
+                        self._stop_event.set()
+                        self.client_socket.close()
+                        self.thread.join()
             time.sleep(interval)
 
         

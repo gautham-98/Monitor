@@ -2,8 +2,11 @@ from time import sleep
 import os, sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from monitor.monitor import monitor
+from monitor.server import MonitorServer
 
 def main():
+    server=MonitorServer("localhost", 8080)
+    server.start()
     @monitor
     class Test:
         def __init__(self,):
