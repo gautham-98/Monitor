@@ -27,9 +27,11 @@ def main():
                 self.i+=1
                 
     test = Test()
-    test.instance_name = "test"
     test_1 = Test()
+    
+    test.instance_name = "test"
     test_1.instance_name = "test_1"
+    
     while True:
         test()
         test_1()
