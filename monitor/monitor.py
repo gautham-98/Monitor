@@ -3,6 +3,8 @@ import time
 import weakref
 import socket
 
+from rich import inspect
+
 class Monitor:
 
     """
@@ -18,7 +20,6 @@ class Monitor:
         if monitored_cls not in cls._instances:
             cls._instances[monitored_cls] = super().__new__(cls)
             _instance = cls._instances[monitored_cls]
-            _instance.monitored_cls = monitored_cls
             _instance.monitored_instances = weakref.WeakSet()
             
             # thread stuff
@@ -28,8 +29,8 @@ class Monitor:
             _instance.thread.start() 
             
             # socket stuff
-            _instance.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            _instance.client_socket.connect(server_addr)
+            # _instance.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # _instance.client_socket.connect(server_addr)
         return cls._instances[monitored_cls]
     
     def register(self, monitored_instance):
@@ -58,17 +59,17 @@ class Monitor:
         while not self._stop_event.is_set():
             with self.lock:
                 for instance in self.monitored_instances:
-                    attributes = self._get_instance_attr(instance)
-                    attributes_str = f"Class {self.monitored_cls.__name__} Instance {id(instance)}" + ", ".join(f"{key}={value}" for key, value in attributes.items()) 
+                    #attributes = self._get_instance_attr(instance)
+                    #attributes_str = f"Class {self.monitored_cls.__name__} Instance {id(instance)}" + ", ".join(f"{key}={value}" for key, value in attributes.items()) 
                     # print(f"Class {self.monitored_cls.__name__} Instance {id(instance)} attributes: {attributes_str}")
-                    
+                    inspect(instance)
                     # send stuff
-                    try:
-                        self.client_socket.sendall(attributes_str.encode('utf-8'))
-                    except Exception as e:
-                        print(f"Client error : {e}")
-                        self._stop_event.set()
-                        self.client_socket.close()
+                    # try:
+                    #     self.client_socket.sendall()
+                    # except Exception as e:
+                    #     print(f"Client error : {e}")
+                    #     self._stop_event.set()
+                    #     self.client_socket.close()
 
             time.sleep(interval)
 
@@ -84,7 +85,9 @@ def monitor(cls):
     class MonitorWrapped(cls):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            monitor = Monitor(cls, interval=1)
+            self.class_name = cls.__name__
+            self.instance_name = id(self)
+            monitor = Monitor(weakref.ref(cls), interval=1)
             monitor.register(self)
             weakref.finalize(self, monitor.deregister, self)
     

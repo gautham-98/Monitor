@@ -1,5 +1,6 @@
 import socket
 import threading
+from rich import inspect
 
 class MonitorServer:
     _instance = None
@@ -60,9 +61,9 @@ class MonitorServer:
     def handle_client(self, client_socket, client_address):
         try:
             while not self._stop_event.is_set():
-                data = client_socket.recv(1024)
-                print(data)
-                if not data:
+                instance = client_socket.recv(1024)
+                inspect(instance)
+                if not instance:
                     break
                 #process data here
         except Exception as e:

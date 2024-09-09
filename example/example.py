@@ -10,27 +10,29 @@ def main():
             self.i = 0
             self.bool = True
             self.str = ""
+            self.string = ["we", "testing", "this", "shit", "now"]
         
-        def __call__(self, ):
+        def __call__(self,):
             self.go_through_stuff()
         
         def go_through_stuff(self,):
-            string = ["we", "testing", "this", "shit", "now"]
-            i=0
-            while True:
+            sleep(1)
+            self.str += (self.string[self.i]+" ")
+            self.bool = not(self.bool)
+            if self.string[self.i]=="now":
                 sleep(1)
-                self.str += (string[i]+" ")
-                self.i += 1
-                self.bool = not(self.bool)
+                self.i=0
+                self.str = ""
+            else:
+                self.i+=1
                 
-                if string[i]=="now":
-                    sleep(1)
-                    i=0
-                    self.str = ""
-                else:
-                    i+=1
     test = Test()
-    test()
-
+    test.instance_name = "test"
+    test_1 = Test()
+    test_1.instance_name = "test_1"
+    while True:
+        test()
+        test_1()
+        
 if __name__ == "__main__":
     main()
