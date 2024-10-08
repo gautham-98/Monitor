@@ -73,26 +73,6 @@ class Monitor:
 
             time.sleep(interval)
 
-        
-
-
-# def monitor(cls):
-
-#     """
-#     A decorator for the monitored class, goes into the init method of the class and registers an instance of it.
-#     """
-    
-#     class MonitorWrapped(cls):
-#         def __init__(self, *args, **kwargs):
-#             super().__init__(*args, **kwargs)
-#             self.class_name = cls.__name__
-#             self.instance_name = id(self)
-#             monitor = Monitor(weakref.ref(cls), interval=1)
-#             monitor.register(self)
-#             weakref.finalize(self, monitor.deregister, self)
-    
-#     return MonitorWrapped
-
 def monitor(cls):
 
     """
@@ -106,6 +86,5 @@ def monitor(cls):
         monitor_instance = Monitor(weakref.ref(cls), interval=1)  # Create the Monitor for the class
         monitor_instance.register(self)  # Register the instance
         weakref.finalize(self, monitor_instance.deregister, self)  # Ensure cleanup when the object is garbage collected
-
     cls.__init__ = monitor_init  # Replace the __init__ method
     return cls
